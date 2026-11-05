@@ -28,6 +28,11 @@ main{padding:0 1rem 1rem;max-width:760px;margin:auto}
 #brillo{font-size:1.5rem;font-weight:600;margin:.4rem 0}
 button.accion{padding:.6rem 1rem;border:none;border-radius:6px;background:var(--acc);color:#fff;font:inherit;cursor:pointer}
 .nota{font-size:.85rem;opacity:.75}
+.estado{display:inline-block;margin-top:.5rem;padding:.25rem .6rem;border-radius:999px;font-size:.85rem;font-weight:600}
+.en-linea{background:#d7f2e8;color:#0a4d3c}
+.sin-linea{background:#e0f0ff;color:#0b3a66}
+@media (prefers-color-scheme: dark){.en-linea{background:#1e4a3e;color:#c8f5e6}.sin-linea{background:#1d3550;color:#cfe6ff}}
+.sobre h3{margin-top:1.2rem}
 footer{font-size:.8rem;text-align:center;opacity:.7;padding:1rem}
 </style>
 </head>
@@ -36,6 +41,7 @@ footer{font-size:.8rem;text-align:center;opacity:.7;padding:1rem}
 <header>
   <h1>Laboratorio de Ciencias sin Conexión</h1>
   <p>Hack4Edu 2026 · Reto 17 · equipo FotonAndino. Funciona sin internet después de la primera carga.</p>
+  <span id="estado" class="estado"></span>
 </header>
 
 <nav id="nav" aria-label="Fichas"></nav>
@@ -169,6 +175,27 @@ const guia = `
   <p class="nota">Las fichas están redactadas para este proyecto. Si reutilizas textos o figuras de otros recursos, revisa su licencia.</p>
 </section>`;
 
+const sobre = `
+<section class="ficha sobre">
+  <h2>Sobre el proyecto</h2>
+  <h3>Problema</h3>
+  <p>En muchas escuelas rurales la ciencia se enseña sin laboratorio y sin internet estable. Los recursos digitales suelen asumir conexión y equipos que no existen en esas aulas.</p>
+  <h3>Idea</h3>
+  <p>Un laboratorio de ciencias que funciona sin conexión: fichas de experimentos de óptica, física, química y biología, hechas con materiales de casa y con el celular como instrumento. Se instala una vez y después funciona en modo avión.</p>
+  <h3>Cómo funciona</h3>
+  <ul>
+    <li>El docente abre la página una vez con señal; el navegador guarda las fichas.</li>
+    <li>Las fichas se usan en el aula sin internet.</li>
+    <li>La medición de brillo usa la cámara del celular, y si no está disponible, el registro manual.</li>
+  </ul>
+  <h3>Qué lo diferencia</h3>
+  <p>Los experimentos no son nuevos: el espectroscopio con CD y la polarización con pantallas son clásicos de divulgación. La contribución es la adaptación: fichas en español alineadas al currículo colombiano, una guía para el docente y un funcionamiento pensado para aulas sin red. Partimos de recursos abiertos como <em>Descubriendo la luz</em> (CSIC, 2018) y la app phyphox, y los citamos.</p>
+  <h3>Cómo escala</h3>
+  <p>Se comparte entre docentes sin red: una carpeta con la página se puede pasar por memoria USB.</p>
+  <h3>Qué sigue</h3>
+  <p>Un piloto con una escuela para probar las fichas con estudiantes y ajustar la guía docente según lo que observe el docente.</p>
+</section>`;
+
 const nav = document.getElementById("nav");
 const main = document.getElementById("contenido");
 let stream = null;
@@ -207,10 +234,10 @@ function detenerCamara() {
 
 function mostrar(i) {
   detenerCamara();
-  nav.querySelectorAll("button").forEach((b, j) => {
-    b.setAttribute("aria-current", String(j === i));
+  nav.querySelectorAll("button").forEach((b) => {
+    b.setAttribute("aria-current", String(Number(b.dataset.i) === i));
   });
-  main.innerHTML = i === -1 ? guia : render(fichas[i]);
+  main.innerHTML = i === -1 ? guia : i === -2 ? sobre : render(fichas[i]);
   if (i >= 0 && fichas[i].widget) activarMedicion();
 }
 
@@ -255,13 +282,34 @@ function activarMedicion() {
 fichas.forEach((f, i) => {
   const b = document.createElement("button");
   b.textContent = "Ficha " + (i + 1);
+  b.dataset.i = i;
   b.addEventListener("click", () => mostrar(i));
   nav.appendChild(b);
 });
+const bs = document.createElement("button");
+bs.textContent = "Sobre el proyecto";
+bs.dataset.i = -2;
+bs.addEventListener("click", () => mostrar(-2));
+nav.appendChild(bs);
 const bg = document.createElement("button");
 bg.textContent = "Guía docente";
+bg.dataset.i = -1;
 bg.addEventListener("click", () => mostrar(-1));
 nav.appendChild(bg);
+
+const estado = document.getElementById("estado");
+function actualizarEstado() {
+  if (navigator.onLine) {
+    estado.textContent = "Modo en línea";
+    estado.className = "estado en-linea";
+  } else {
+    estado.textContent = "Sin conexión: las fichas siguen disponibles";
+    estado.className = "estado sin-linea";
+  }
+}
+window.addEventListener("online", actualizarEstado);
+window.addEventListener("offline", actualizarEstado);
+actualizarEstado();
 
 mostrar(0);
 
