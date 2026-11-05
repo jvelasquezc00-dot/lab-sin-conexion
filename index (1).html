@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a6e5c">
+<title>Laboratorio de Ciencias sin Conexión · FotonAndino</title>
+<style>
+:root{--bg:#fafaf7;--fg:#1d1d1b;--acc:#0a6e5c;--card:#ffffff;--line:#d9d9d2}
+@media (prefers-color-scheme: dark){:root{--bg:#171a1a;--fg:#eaeae4;--acc:#4fd1b5;--card:#202424;--line:#3a3f3f}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg);line-height:1.5}
+header{padding:1rem;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:1.25rem}
+header p{margin:.25rem 0 0;font-size:.9rem;opacity:.8}
+nav{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem;max-width:760px;margin:auto}
+nav button{padding:.5rem .8rem;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;cursor:pointer;font:inherit;font-size:.9rem}
+nav button[aria-current="true"]{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{padding:0 1rem 1rem;max-width:760px;margin:auto}
+.ficha{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.ficha h2{margin:0 0 .5rem;font-size:1.1rem}
+.ficha h3{font-size:.95rem;margin:1rem 0 .3rem;color:var(--acc)}
+.ficha ul,.ficha ol{padding-left:1.2rem;margin:.3rem 0}
+.ficha li{margin-bottom:.25rem}
+.hip{font-style:italic}
+#cam video{width:100%;max-height:240px;background:#000;border-radius:6px;margin-top:.5rem}
+#cam canvas{display:none}
+#brillo{font-size:1.5rem;font-weight:600;margin:.4rem 0}
+button.accion{padding:.6rem 1rem;border:none;border-radius:6px;background:var(--acc);color:#fff;font:inherit;cursor:pointer}
+.nota{font-size:.85rem;opacity:.75}
+footer{font-size:.8rem;text-align:center;opacity:.7;padding:1rem}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Laboratorio de Ciencias sin Conexión</h1>
+  <p>Hack4Edu 2026 · Reto 17 · equipo FotonAndino. Funciona sin internet después de la primera carga.</p>
+</header>
+
+<nav id="nav" aria-label="Fichas"></nav>
+<main id="contenido"></main>
+
+<footer>
+  Inspirado en experimentos clásicos de divulgación, como <em>Descubriendo la luz</em> (CSIC, 2018) y la app phyphox.
+</footer>
+
+<script>
+const fichas = [
+  {
+    titulo: "Ficha 1 · Espectroscopio con un CD",
+    objetivo: "Observar cómo la luz blanca se separa en colores al reflejarse en un CD.",
+    hipotesis: "Los colores se separan en un arcoíris y el rojo se desvía más que el azul respecto a la dirección del haz.",
+    materiales: [
+      "Un CD o DVD usado",
+      "Una fuente de luz blanca (lámpara o luz solar directa)",
+      "Una hoja de papel blanco o una pared como pantalla",
+      "Una cartulina con una rendija pequeña (opcional)"
+    ],
+    pasos: [
+      "Sostén el CD inclinado frente a la fuente de luz, de modo que la luz se refleje en la superficie con surcos.",
+      "Mueve el CD en diferentes ángulos y observa la pared o la hoja.",
+      "Dibuja o anota el orden de los colores que ves.",
+      "Si tienes cartulina, haz una rendija pequeña para obtener un haz más delgado y un patrón más nítido."
+    ],
+    preguntas: [
+      "¿En qué orden aparecen los colores?",
+      "¿Cambia el patrón si giras el CD o cambias la fuente de luz?",
+      "¿Por qué el arcoíris aparece solo en ciertos ángulos?"
+    ],
+    explicacion: "Los surcos del CD están muy juntos (unos 1,6 micrómetros) y funcionan como una rejilla de difracción. Cada color sale en un ángulo distinto porque tiene una longitud de onda distinta. Por eso el rojo se desvía más que el azul.",
+    widget: false
+  },
+  {
+    titulo: "Ficha 2 · Polarización con la pantalla del celular",
+    objetivo: "Descubrir que la luz de una pantalla LCD está polarizada y comprobarlo con unas gafas polarizadas.",
+    hipotesis: "Al girar una lente polarizada frente a la pantalla, la imagen se oscurece y se aclara de forma periódica, y se apaga casi por completo cuando las lentes están cruzadas (90°).",
+    materiales: [
+      "Un celular con pantalla LCD encendida, con fondo blanco",
+      "Gafas polarizadas (las gafas de sol comunes no sirven)",
+      "Un papel con texto o una figura simple (opcional)"
+    ],
+    pasos: [
+      "Pon la pantalla del celular con fondo blanco.",
+      "Mira la pantalla a través de una lente de las gafas, sin girarla, y anota qué tan brillante se ve.",
+      "Gira la lente lentamente y observa cómo cambia el brillo.",
+      "Detente en el punto más oscuro y estima el ángulo de giro.",
+      "Gira el celular 90° sin mover las gafas y compara."
+    ],
+    preguntas: [
+      "¿A qué ángulo la pantalla se ve más oscura?",
+      "¿Qué pasa si giras el celular 90° sin mover las gafas?",
+      "¿Por qué unas gafas de sol normales no producen el mismo efecto?"
+    ],
+    explicacion: "Las pantallas LCD emiten luz linealmente polarizada. Cada lente polarizada solo deja pasar la luz con una dirección de vibración. Cuando la lente está cruzada respecto a esa dirección, la luz queda bloqueada y la pantalla se ve oscura.",
+    widget: false
+  },
+  {
+    titulo: "Ficha 3 · Brillo y distancia con la cámara",
+    objetivo: "Estimar cómo disminuye el brillo de una fuente de luz al alejarse de ella, usando la cámara como medidor relativo.",
+    hipotesis: "El brillo disminuye aproximadamente con el cuadrado de la distancia: si duplicas la distancia, el brillo baja a una cuarta parte.",
+    materiales: [
+      "Una linterna o lámpara pequeña con luz constante",
+      "Un celular con cámara",
+      "Una cinta métrica o regla larga",
+      "Una hoja de papel blanco como blanco de medida",
+      "Una hoja de registro manual si la cámara no mide"
+    ],
+    pasos: [
+      "Fija la lámpara y la hoja a 20 cm. Apaga cualquier otra luz.",
+      "Apunta la cámara a la hoja, sin ver la lámpara directamente, y pulsa el botón de medición de abajo.",
+      "Anota el valor de brillo. Repite a 40, 60 y 80 cm, sin mover la cámara ni cambiar la luz ambiente.",
+      "Si la cámara no funciona, observa la hoja en cada distancia y anota su brillo en una escala del 1 al 5."
+    ],
+    preguntas: [
+      "¿Cómo cambia el brillo entre 20 cm y 40 cm? ¿Y entre 20 cm y 80 cm?",
+      "¿Los valores coinciden con la hipótesis?",
+      "¿Qué factores pueden alterar la medida (sombras, reflejos, luz ambiente)?"
+    ],
+    explicacion: "La intensidad de una fuente puntual disminuye con el inverso del cuadrado de la distancia, porque la misma energía se reparte sobre una superficie cada vez mayor. La cámara no mide luz en unidades físicas exactas, así que el resultado es una tendencia relativa.",
+    widget: true
+  },
+  {
+    titulo: "Ficha 4 · Indicador de pH con repollo morado",
+    objetivo: "Usar un extracto natural para distinguir sustancias ácidas, neutras y básicas.",
+    hipotesis: "El extracto de repollo morado tomará color rojizo con sustancias ácidas, morado con las neutras y verdoso o amarillo con las básicas.",
+    materiales: [
+      "Un cuarto de repollo morado",
+      "Agua caliente, un recipiente y un colador",
+      "Cuatro o cinco vasos transparentes",
+      "Sustancias para probar: limón o vinagre (ácidos), agua (neutra), bicarbonato disuelto o jabón líquido diluido (básicas)"
+    ],
+    pasos: [
+      "Pica el repollo y ponlo en agua caliente unos 10 minutos, hasta que el agua quede morada oscura.",
+      "Cuela el líquido y deja enfriar. Este es el indicador.",
+      "Pon unos 50 ml de indicador en cada vaso.",
+      "Agrega a cada vaso una sustancia en pequeñas cantidades y anota el color final."
+    ],
+    preguntas: [
+      "¿Qué color da cada sustancia?",
+      "¿Cuál es el orden de los colores de ácido a básico?",
+      "¿Por qué el color cambia aunque solo agregues un poco de sustancia?"
+    ],
+    explicacion: "El repollo morado contiene antocianinas, pigmentos que cambian de estructura según el pH. En medio ácido se ven rojos o rosados; en medio neutro, morados; y en medio básico, verdes o amarillos. Es menos preciso que una tira de pH, pero sirve como indicador casero.",
+    widget: false
+  }
+];
+
+const guia = `
+<section class="ficha">
+  <h2>Guía para el docente</h2>
+  <h3>Antes de la clase</h3>
+  <ul>
+    <li>Abre esta página con señal una vez. Después funciona en modo avión.</li>
+    <li>Reúne los materiales de cada ficha con anticipación.</li>
+    <li>Prueba cada experimento una vez antes de la clase.</li>
+  </ul>
+  <h3>Durante la clase</h3>
+  <ul>
+    <li>Pide a los estudiantes que escriban la hipótesis antes de empezar.</li>
+    <li>Nunca miren el sol directamente ni a través de un instrumento óptico.</li>
+    <li>Usa el celular como instrumento, pero no lo apuntes al sol.</li>
+  </ul>
+  <h3>Después de la clase</h3>
+  <ul>
+    <li>Compara la hipótesis con lo observado y discute las diferencias.</li>
+    <li>Pide a los estudiantes que propongan un experimento nuevo con materiales de casa.</li>
+  </ul>
+  <p class="nota">Las fichas están redactadas para este proyecto. Si reutilizas textos o figuras de otros recursos, revisa su licencia.</p>
+</section>`;
+
+const nav = document.getElementById("nav");
+const main = document.getElementById("contenido");
+let stream = null;
+let animacion = null;
+
+function render(f) {
+  const lista = (arr, tag) => `<${tag}>${arr.map(x => `<li>${x}</li>`).join("")}</${tag}>`;
+  const widget = f.widget ? `
+    <h3>Medición con la cámara</h3>
+    <button class="accion" id="iniciar">Activar cámara</button>
+    <div id="cam">
+      <video id="video" playsinline muted></video>
+      <canvas id="lienzo" width="64" height="64"></canvas>
+      <p id="brillo">—</p>
+      <p class="nota">Apunta la cámara a la hoja blanca. El número es un brillo relativo (0 = negro, 255 = blanco). Mantén la misma configuración en todas las distancias.</p>
+    </div>` : "";
+  return `
+    <section class="ficha">
+      <h2>${f.titulo}</h2>
+      <h3>Objetivo</h3><p>${f.objetivo}</p>
+      <h3>Hipótesis</h3><p class="hip">${f.hipotesis}</p>
+      <h3>Materiales</h3>${lista(f.materiales, "ul")}
+      <h3>Pasos</h3>${lista(f.pasos, "ol")}
+      <h3>Preguntas</h3>${lista(f.preguntas, "ul")}
+      <h3>Explicación</h3><p>${f.explicacion}</p>
+      ${widget}
+    </section>`;
+}
+
+function detenerCamara() {
+  if (animacion) cancelAnimationFrame(animacion);
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null;
+  animacion = null;
+}
+
+function mostrar(i) {
+  detenerCamara();
+  nav.querySelectorAll("button").forEach((b, j) => {
+    b.setAttribute("aria-current", String(j === i));
+  });
+  main.innerHTML = i === -1 ? guia : render(fichas[i]);
+  if (i >= 0 && fichas[i].widget) activarMedicion();
+}
+
+function activarMedicion() {
+  const boton = document.getElementById("iniciar");
+  const video = document.getElementById("video");
+  const lienzo = document.getElementById("lienzo");
+  const salida = document.getElementById("brillo");
+  const ctx = lienzo.getContext("2d", { willReadFrequently: true });
+
+  boton.addEventListener("click", async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      salida.textContent = "Este navegador no permite usar la cámara. Usa el registro manual.";
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play();
+      boton.textContent = "Cámara activa";
+      boton.disabled = true;
+      const medir = () => {
+        ctx.drawImage(video, 0, 0, 64, 64);
+        const datos = ctx.getImageData(0, 0, 64, 64).data;
+        let suma = 0;
+        for (let k = 0; k < datos.length; k += 4) {
+          suma += 0.2126 * datos[k] + 0.7152 * datos[k + 1] + 0.0722 * datos[k + 2];
+        }
+        salida.textContent = "Brillo: " + Math.round(suma / (datos.length / 4));
+        animacion = requestAnimationFrame(medir);
+      };
+      medir();
+    } catch (err) {
+      salida.textContent = "No se pudo activar la cámara. Usa el registro manual con la escala del 1 al 5.";
+    }
+  });
+}
+
+fichas.forEach((f, i) => {
+  const b = document.createElement("button");
+  b.textContent = "Ficha " + (i + 1);
+  b.addEventListener("click", () => mostrar(i));
+  nav.appendChild(b);
+});
+const bg = document.createElement("button");
+bg.textContent = "Guía docente";
+bg.addEventListener("click", () => mostrar(-1));
+nav.appendChild(bg);
+
+mostrar(0);
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
